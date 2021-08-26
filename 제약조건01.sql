@@ -87,3 +87,44 @@ insert into dept71 values(20,'영업부','부산');
 insert into dept71 values(30,'개발부','판교');
 
 select * from dept71 order by deptno asc;
+
+--외래키가 있는 사원 테이블 생성
+create table emp71(
+	empno number(38) constraint emp71_empno_pk primary key--사원번호
+	,ename varchar2(50) constraint emp71_ename_nn not null --사원이름
+	,job varchar2(100) --직종
+	,deptno number(38) constraint emp71_deptno_fk references dept71(deptno) --외래키 정의
+);
+
+insert into emp71 values(11,'홍길동','관리사원',10);
+insert into emp71 values(12,'이순신','영업사원',20);
+
+select * from emp71 order by empno asc;
+
+insert into emp71 values(13,'강감찬','경리원',50); --부모키의 없는 부서번호를 저장하려다가 참조 무결성 제약조건 에러가 발생한다.
+
+--생성된 테이블의 제약조건 타입, 이름등을 확인
+select table_name,constraint_type,constraint_name,r_constraint_name from user_constraints
+where table_name in('DEPT71','EMP71');
+
+--r_constraint_name 컬럼에는 외래키가 어느 기본키를 참조하고 있는지에 대한 정보를 담고 있다. 테이블명은 영문 대문자로 해야함
+
+--ANSI 미국 표준 협회 Inner Join실습)
+select * from dept71 inner join emp71 on dept71.deptno = emp71.deptno;
+
+--기본키가 있는 학과 테이블 생성
+create table depart71(
+	deptcode varchar2(6) constraint depart71_deptcode_pk primary key--학과 코드
+	,deptname varchar2(50) constraint depart71_deptnae_nn not null --학과이름
+);
+
+insert into depart71 values('a001','영어교육학과');
+insert into depart71 values('a002','수학교육학과');
+
+select * from depart71 order by deptcode asc; --asc문은 생략 가능
+
+--외래키가 있는 학생테이블 생성
+create table student71(
+	sno number(38) constraint student71_sno_pk primary key --학번
+	,sname varchar2(50) constraint student71_sname_nn not null --학생이름
+);
