@@ -127,4 +127,112 @@ select * from depart71 order by deptcode asc; --asc문은 생략 가능
 create table student71(
 	sno number(38) constraint student71_sno_pk primary key --학번
 	,sname varchar2(50) constraint student71_sname_nn not null --학생이름
+	,gender varchar2(10) constraint student71_gender_nn not null--성별
+	,addr varchar2(200) --주소
+	,deptcode varchar2(6) constraint student71_deptcode_fk references depart71(deptcode) --외래키 설정
 );
+
+insert into student71 values(1,'홍길동','남','서울시','a001');
+insert into student71 values(2,'이순신','남','부산시','a002');
+
+--공통컬럼을 기준으로 조인 검색
+select sno,sname,gender,addr,d.deptcode,deptname from depart71 d, student71 s where d.deptcode = s.deptcode;
+
+select table_name, constraint_type, constraint_name, r_constraint_name from user_constraints
+where table_name in('DEPART71','STUDENT71');
+
+--check 제약조건 실습
+create table emp73(
+	empno number(38) constraint emp73_empno_pk primary key
+	,ename varchar2(50) constraint emp73_ename_nn not null
+	,sal number(38) constraint emp73_sal_ck check(sal between 500 and 5000) --급여가 500~5000사이의 급여만 저장되게 한다.
+	,gender varchar2(10) constraint emp73_gender_ck check(gender in('M','F')) --성별 M 또는 F만 저장되게 한다.
+);
+
+insert into emp73 values(7501,'신사임당님',7000,'F'); --급여가 500~5000 범위를 벗어나서 check제약 조건 에러가 발생
+
+insert into emp73 values(7502,'강감찬님',3000,'K'); --성별이 M,F 범위를 벗어나서 저장 안됨
+
+--default 제약조건
+create table dept73(
+	deptno number(38) primary key
+	,dname varchar2(50)
+	,LOC varchar(20) default '서울'
+);
+
+insert into dept73 (deptno,dname) values(11,'영업부');
+
+select * from dept73;
+
+--테이블 레벨 방식으로 제약조건 지정
+create table emp76(
+	empno number(38)
+	,ename varchar2(50) not null
+	,job varchar2(50)
+	,deptno int
+	,primary key(empno) --기본키 설정
+	,unique (job)
+	,foreign key (deptno) references dept71(deptno)
+);
+
+--생성된 제약조건명, 제약조건 타입등을 확인
+select constraint_name, constraint_type, table_name,r_constraint_name from user_constraints
+where table_name ='EMP76';
+
+--테이블 레벨 지정방식으로 constraint 키워드를 사용한 사용자 정의 제약조건명을 명시적 지정
+create table emp77(
+	empno number(38)
+	,ename varchar2(50) constraint emp77_ename_nn not null
+	,job varchar2(50)
+	,deptno number(38)
+	,constraint emp77_empno_pk primary key(empno)
+	,constraint emp77_job_uk unique(job)
+	,constraint emp77_deptno_fk foreign key(deptno) references dept71(deptno)
+);
+
+select constraint_name,constraint_type,table_name,r_constraint_name from user_constraints
+where table_name='EMP77';
+
+--하나의 테이블에 2개의 기본키를 동시 설정
+create table member01(
+	id varchar2(20)
+	,name varchar2(20)
+	,addr varchar2(200)
+	,phone varchar2(20)
+	,constraint member01_idphone_pk primary key(id,phone) --2개의 기본키 설정
+);
+
+select owner,constraint_name,table_name,column_name from user_cons_columns
+where table_name='MEMBER01';
+
+/*미리 생성된 테이블 컬럼에 제약조건 추가 형식)
+* alter table 테이블명
+* add constraint 사용자 정의 제약조건명 제약조건타입(컬럼명);
+*/
+--기존 테이블에 제약조건 추가실습
+create table emp78(
+	empno number(38)
+	,ename varchar2(50)
+	,job varchar2(50)
+	,deptno number(38)
+);
+
+select constraint_name, constraint_type, table_name, r_constraint_name from user_constraints
+where table_name='EMP78';
+
+ALTER TABLE emp78 add constraint emp78_empno_pk primary key(empno);
+
+--외래키 추가
+alter table emp78 add constraint emp78_deptno_fk foreign key(deptno) references dept71(deptno);
+
+--not null 제약조건 추가
+alter table emp78 modify ename constraint emp78_ename_nn not null;
+
+insert into emp78 values(11,'이순신','관리사원',10);
+insert into emp78 values(12,'홍길동','영업사원',20);
+insert into emp78 values(11,'강감찬','관리부장',10);--중복사원번호 저장안됨. (조건 제거 후 저장 됨)
+
+--기본키 제약 조건 제거
+alter table emp78 drop constraint emp78_empno_pk;
+
+select * from emp78;
