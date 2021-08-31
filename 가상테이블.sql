@@ -66,3 +66,71 @@ where d.deptno = e.deptno and e.deptno=10
 order by empno asc;
 
 select * from join_view;
+
+--삭제할 del_view 가상테이블 생성
+create view DEL_VIEW as select empno,ename from emp86;
+
+select * from del_view;
+
+--생성된 뷰 이름을 확인
+select view_name from user_views;
+
+--DEL_VIEW 가상테이블 삭제
+DROP VIEW DEL_VIEW;
+
+--re_view 가상 테이블 생성
+create view re_view as select empno,ename from emp86;
+
+select * from re_view;
+
+--or replace 옵션으로 기존 뷰를 수정
+create or replace view re_view
+as select empno,ename,sal from emp86;
+
+--force 옵션으로 기존테이블이 없어도 가상테이블 뷰를 생성
+select * from abc;
+
+create or replace force view for_view
+as select empno,ename from abc;
+
+--조건 제시된 20번 부서번호를 수정 못하게 한다.
+select * from emp86;
+create or replace view view_check as select empno,ename,deptno from emp86 where deptno=20 with check option;
+
+update view_check set deptno=10 where empno=103;
+
+--with read only 옵션 
+create or replace view only_view
+as
+select empno,ename,sal,comm,deptno from emp86 where deptno=20 with read only;
+
+select * from only_view;
+
+--뷰를 통해서 부서번호 20번의 보너스를 수정 > 읽기전용 뷰를 통해서 수정작업 불가
+update only_view set comm=100 where deptno=20;
+
+--rownum컬럼 실습을 위한 테이블 생성
+create table emp92(
+	empno number(38) primary key
+	,ename varchar2(50)
+	,sal int
+);
+
+insert into emp92 values(1,'홍길동',1000);
+insert into emp92 values(2,'이순신',2000);
+insert into emp92 values(3,'강감찬',3000);
+
+select rownum,empno,ename,sal from emp92 order by empno asc;
+select rownum,empno,ename,sal from emp92 order by empno desc;
+
+--뷰생성
+create or replace view row_view
+as select empno,ename,sal from emp92 order by empno desc;
+
+select rownum,empno,ename,sal from row_view;
+
+--가장 최근에 입사한 사원을 뷰를 통해서 구함
+select rownum,empno,ename,sal from row_view where rownum <=1;
+
+--가장 최근에 입사한 사원을 인라인 뷰 서브쿼리문으로 구함
+select rownum,empno,ename,sal from (select empno,ename,sal from emp92 order by empno desc) where rownum <=1;
