@@ -1,0 +1,8 @@
+create or replace procedure DEL_NAME(
+    vename emp01.ename%type
+)
+is
+begin
+ delete from emp01 where ename=vename;
+ end;
+ /
