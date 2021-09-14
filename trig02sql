@@ -1,0 +1,8 @@
+create or replace trigger trg_02
+after insert on emp01
+
+for each row
+begin
+    insert into sal01 values(sal01_salno_seq.nextval, 100, :new.empno);
+end;
+/
